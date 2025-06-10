@@ -1,0 +1,131 @@
+Primeiro, garanta que você está na branch que quer enviar, por exemplo, main:
+
+bash
+Copiar
+Editar
+git checkout main
+Adicione todos os seus arquivos locais:
+
+bash
+Copiar
+Editar
+git add .
+Faça commit das suas mudanças:
+
+bash
+Copiar
+Editar
+git commit -m "Forçando sobrescrita com arquivos locais"
+Agora, faça o push forçado para o repositório remoto:
+
+bash
+Copiar
+Editar
+git push origin main --force
+
+
+# Guia de Comandos - Projeto Django com Docker e Git
+
+## ✅ PASSO A PASSO
+
+---
+
+### 1. Clonar o repositório
+
+```bash
+git clone https://github.com/seu-usuario/seu-repositorio.git
+cd seu-repositorio
+```
+
+---
+
+### 2. Subir os containers com Docker
+
+```bash
+docker-compose up --build
+```
+
+---
+
+### 3. Acessar o container para comandos Django
+
+```bash
+docker-compose exec web bash
+```
+
+---
+
+### 4. Executar as migrações
+
+```bash
+python manage.py migrate
+```
+
+---
+
+### 5. Criar um superusuário
+
+```bash
+python manage.py createsuperuser
+```
+
+---
+
+### 6. Rodar servidor (caso não esteja rodando)
+
+```bash
+python manage.py runserver 0.0.0.0:8000
+```
+
+---
+
+### 7. Editar o código no VSCode
+
+> Edite normalmente os arquivos Python e HTML no VSCode.
+
+---
+
+### 8. Atualizar dependências (após instalar novas libs)
+
+```bash
+pip freeze > requirements.txt
+```
+
+---
+
+### 9. Versionar e subir alterações para o Git
+
+```bash
+git status
+git add .
+git commit -m "Mensagem do commit"
+git push origin master
+```
+
+---
+
+### 10. Puxar alterações remotas
+
+```bash
+git pull origin master
+```
+
+---
+
+### 11. Parar os containers
+
+```bash
+docker-compose down
+```
+
+---
+
+### 12. (Opcional) Limpar tudo: containers, volumes e imagens
+
+```bash
+docker-compose down -v --rmi all --remove-orphans
+```
+
+---
+
+Fique à vontade para adaptar esse guia conforme o nome dos seus serviços no `docker-compose.yml` e seu fluxo de trabalho!
