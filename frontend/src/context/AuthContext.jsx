@@ -8,23 +8,25 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      setUser({ token }); // Em app real, você validaria isso com backend
+    const access = localStorage.getItem('access_token');
+    const refresh = localStorage.getItem('refresh_token');
+    if (access && refresh) {
+      setUser({ accessToken: access });
     }
   }, []);
 
-  const login = (userData) => {
-    setUser(userData);
+  const login = (tokens) => {
+    localStorage.setItem('access_token', tokens.access);
+    localStorage.setItem('refresh_token', tokens.refresh);
+    setUser({ accessToken: tokens.access });
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
     setUser(null);
   };
 
-  // Registra o logout para ser usado no interceptor
   useEffect(() => {
     setLogout(logout);
   }, []);
