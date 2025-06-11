@@ -2,6 +2,10 @@ import subprocess
 import sys
 from datetime import datetime
 
+def has_changes():
+    result = subprocess.run("git status --porcelain", shell=True, capture_output=True, text=True)
+    return bool(result.stdout.strip())
+
 # Mensagem de commit como argumento (ou padrão)
 commit_msg = "Atualização do projeto"
 if len(sys.argv) > 1:
@@ -18,6 +22,11 @@ def run_git_command(command):
     if result.returncode != 0:
         print(f"❌ Erro ao executar: {command}")
         sys.exit(1)
+
+print("🔄 Verificando alterações...")
+if not has_changes():
+    print("ℹ️ Nenhuma alteração detectada. Nada para commitar.")
+    sys.exit(0)
 
 print("🔄 Adicionando arquivos...")
 run_git_command("git add .")
