@@ -1,10 +1,17 @@
 import subprocess
 import sys
+from datetime import datetime
 
 # Mensagem de commit como argumento (ou padrão)
 commit_msg = "Atualização do projeto"
 if len(sys.argv) > 1:
     commit_msg = " ".join(sys.argv[1:])
+
+# Obter data e hora atual no formato DD/MM/YYYY HH:MM
+current_time = datetime.now().strftime("%d/%m/%Y %H:%M")
+
+# Adicionar data/hora à mensagem de commit
+commit_msg = f"{commit_msg} - {current_time}"
 
 def run_git_command(command):
     result = subprocess.run(command, shell=True)
