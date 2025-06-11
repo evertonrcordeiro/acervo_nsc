@@ -2,6 +2,18 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
+function decodeJWT(token) {
+  try {
+    const payload = token.split('.')[1];
+    const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const decodedPayload = JSON.parse(atob(base64));
+    return decodedPayload;
+  } catch (error) {
+    console.error('Erro ao decodificar token:', error);
+    return null;
+  }
+}
+
 export default function Login() {
   const [username, setUsername] = useState('');
   const [senha, setSenha] = useState('');
@@ -16,9 +28,7 @@ export default function Login() {
     try {
       const response = await fetch('http://localhost:8000/api/token/', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password: senha }),
       });
 
@@ -27,7 +37,17 @@ export default function Login() {
       }
 
       const data = await response.json();
-      login({ access: data.access, refresh: data.refresh });
+
+      // Decodifica o token para extrair info do usuário
+      const decoded = decodeJWT(data.access);
+      const nome = decoded?.username || username; // ou outro campo, como `name` ou `email`
+
+      const userInfo = {
+        nome,
+        loginHorario: new Date().toISOString(),
+      };
+
+      login({ access: data.access, refresh: data.refresh }, userInfo);
       navigate('/dashboard');
     } catch (err) {
       setErro(err.message || 'Erro no login');

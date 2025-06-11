@@ -43,7 +43,7 @@ class Programa(models.Model):
 
     class Meta:
         managed = True
-        db_table = 'programas'
+        db_table = 'programa'
         ordering = ['nome']
 
     def __str__(self):
@@ -60,8 +60,9 @@ class Midia(models.Model):
         LOCAL = 'local', 'Local'
         NUVEM = 'nuvem', 'Nuvem'
 
-    id = models.AutoField(primary_key=True)
-    cod_documento = models.CharField('Cód Doc.', max_length=50, null=True, blank=True)
+    # id = models.AutoField(primary_key=True)
+    # cod_documento = models.CharField('Cód Doc.', max_length=50, null=True, blank=True)
+    cod_documento = models.CharField('Cód Doc.', max_length=50, primary_key=True)
     num_fita = models.CharField(max_length=50, null=True, blank=True)
     # uuid = models.CharField(max_length=36, unique=True, null=True, blank=True)
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
@@ -164,128 +165,43 @@ class Resumo(models.Model):
     def __str__(self):
         return f"Resumo para {self.id_midia.cod_documento , self.id_midia.titulo}"
 
-# class Midia(models.Model):
-#     TIPO_MIDIA_CHOICES = [
-#         ('vivo', 'Vivo'),
-#         ('bruta', 'Bruta'),
-#         ('editada', 'Editada'),
-#     ]
-    
-#     ARMAZENAMENTO_CHOICES = [
-#         ('disco', 'Disco'),
-#         ('local', 'Local'),
-#         ('nuvem', 'Nuvem'),
-#     ]
 
-#     # Identificação
-#     id = models.AutoField(primary_key=True)
-#     cod_documento = models.CharField('Código Documento (Legado)', max_length=50, blank=True, null=True)
-#     num_fita = models.CharField('Número Fita (Legado)', max_length=50, blank=True, null=True)
-#     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-#         # Adicione este novo campo
-#     arquivo = models.FileField(
-#         'Arquivo', 
-#         upload_to='medias/',
-#         blank=True,
-#         null=True
-#     )
-#     nome_original = models.CharField(
-#         'Nome Original do Arquivo', 
-#         max_length=255, 
-#         blank=True
-#     )
-    
-#     # Metadados básicos
-#     titulo = models.CharField(max_length=255)
-#     tipo_midia = models.CharField(max_length=10, choices=TIPO_MIDIA_CHOICES)
-#     duracao = models.DurationField('Duração', blank=True, null=True)
-#     timecode = models.CharField(max_length=20, blank=True, null=True)
-#     observacoes = models.TextField(blank=True, null=True)
-#     armazenamento = models.CharField(max_length=10, choices=ARMAZENAMENTO_CHOICES, default='disco')
-    
-#     # Datas
-#     data_cadastro = models.DateTimeField(auto_now_add=True)
-#     data_alteracao = models.DateTimeField(auto_now=True)
-#     data_inclusao = models.DateField('Data de Inclusão', blank=True, null=True)
-    
-#     # Relacionamentos
-#     local = models.ForeignKey(
-#         'Local',
-#         on_delete=models.SET_NULL,
-#         null=True,
-#         blank=True,
-#         verbose_name='Local de Origem'
-#     )
-    
-#     fonte = models.ForeignKey(
-#         'Fonte',
-#         on_delete=models.SET_NULL,
-#         null=True,
-#         blank=True,
-#         verbose_name='Fonte'
-#     )
-    
-#     programa = models.ForeignKey(
-#         'Programa',
-#         on_delete=models.SET_NULL,
-#         null=True,
-#         blank=True,
-#         verbose_name='Programa'
-#     )
-    
-#     resumo = models.OneToOneField(
-#         'Resumo',
-#         on_delete=models.SET_NULL,
-#         null=True,
-#         blank=True,
-#         verbose_name='Resumo'
-#     )
 
-    # class Meta:
-    #     verbose_name = 'Mídia'
-    #     verbose_name_plural = 'Mídias'
-    #     ordering = ['-data_cadastro']
+class Vocabulario(models.Model):
+    cod_vocabulario = models.IntegerField(primary_key=True)
+    termo = models.CharField(max_length=255)
+    # data_inclusao = models.DateField()
 
-    # def __str__(self):
-    #     return f"{self.titulo} ({self.get_tipo_midia_display()})"
+    class Meta:
+        db_table = 'vocabulario'
+        # managed = False  # Não criar ou alterar a tabela no banco
+        managed = True
 
-# # Modelos relacionados (adicione em models.py ou em arquivos separados)
-# class Local(models.Model):
-#     nome = models.CharField(max_length=100)
-#     descricao = models.TextField(blank=True)
-    
-#     def __str__(self):
-#         return self.nome
 
-# class Fonte(models.Model):
-#     nome = models.CharField(max_length=100)
-#     contato = models.CharField(max_length=100, blank=True)
-    
-#     def __str__(self):
-#         return self.nome
+class Sinonimo(models.Model):
+    cod_vocabulario = models.ForeignKey(Vocabulario, on_delete=models.DO_NOTHING, related_name='sinonimos')
+    cod_sinonimo = models.ForeignKey(Vocabulario, on_delete=models.DO_NOTHING, related_name='referenciado_como_sinonimo')
+    tipo_use = models.CharField(max_length=50)
 
-# class Programa(models.Model):
-#     titulo = models.CharField(max_length=200)
-#     codigo = models.CharField(max_length=50, unique=True)
-    
-#     def __str__(self):
-#         return f"{self.titulo} ({self.codigo})"
+    class Meta:
+        db_table = 'sinonimos'
+        # managed = False
+        managed = True
 
-# class Resumo(models.Model):
-#     id = models.AutoField(primary_key=True)
-#     id_midia = models.ForeignKey(Midia, on_delete=models.CASCADE)
-#     resumo = models.TextField()
 
-#     class Meta:
-#         managed = False
-#         db_table = 'resumos'
 
-# class Resumo(models.Model):
-#     texto = models.TextField()
-#     palavras_chave = models.CharField(max_length=200, blank=True)
-    
-#     def __str__(self):
-#         return self.texto[:50] + '...' if len(self.texto) > 50 else self.texto
+class MidiaVocabulario(models.Model):
+    cod_midia = models.ForeignKey(Midia, on_delete=models.DO_NOTHING)
+    cod_vocabulario = models.ForeignKey(Vocabulario, on_delete=models.DO_NOTHING)
+
+    class Meta:
+        db_table = 'midias_vocabulario'
+        # managed = False
+        managed = True
+        unique_together = (('cod_midia', 'cod_vocabulario'),)
+
+
+
 
 # Signals para tratamento de arquivos
 

@@ -37,13 +37,6 @@ class MidiaListView(APIView):
         serializer = MidiaSerializer(result_page, many=True)
         return paginator.get_paginated_response(serializer.data)
 
-# class MidiaViewSet(viewsets.ReadOnlyModelViewSet):
-#     # queryset = Midia.objects.filter(ativo=True)
-#     queryset = Midia.objects.all()
-
-#     serializer_class = MidiaSerializer
-#     pagination_class = MidiaPagination  # <-- Adicione isso
-
 
 class MidiaViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Midia.objects.all().select_related('resumo')  # adiciona select_related para o OneToOneField

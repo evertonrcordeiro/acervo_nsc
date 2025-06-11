@@ -88,6 +88,7 @@ export default function ListaMidias() {
         } else {
           setResumo('Resumo não disponível');
         }
+
       } catch (err) {
         setErroResumo(err.message);
       } finally {
@@ -97,6 +98,9 @@ export default function ListaMidias() {
 
     fetchResumo();
   }, [selectedMidia]);
+
+  console.log('Resumo atual:', resumo);
+
 
   return (
     <div className="p-4 max-w-4xl mx-auto">
@@ -112,23 +116,26 @@ export default function ListaMidias() {
       )}
 
       {!loading && !erro && midias.length > 0 && (
-        <ul className="space-y-4">
+        <ul className="space-y-2">
           {midias.map((midia) => (
             <li
               key={midia.cod_documento}
-              className="border border-gray-300 rounded-lg p-5 shadow-sm hover:shadow-lg transition-shadow duration-300 bg-gray-50 cursor-pointer select-none"
+              className="border border-gray-300 rounded-lg p-3 shadow-sm hover:shadow-lg transition-shadow duration-300 bg-gray-50 cursor-pointer select-none"
               title={midia.titulo}
               onClick={() => setSelectedMidia(midia)}
             >
               <h3 className="font-semibold text-xl text-blue-700 mb-1 truncate">
-                {midia.titulo}
+                Doc.: <strong>{midia.cod_documento}</strong>
               </h3>
+
               <p className="text-sm text-gray-600">
-                <strong>Código:</strong> {midia.cod_documento}
-              </p>
+                Num. Fita: <strong>{midia.num_fita}</strong>
+              </p> 
+                          
               <p className="text-sm text-gray-600">
-                <strong>Num. Fita:</strong> {midia.num_fita}
+                {midia.titulo} 
               </p>
+
             </li>
           ))}
         </ul>
@@ -146,12 +153,14 @@ export default function ListaMidias() {
             </p>
             <p>
               <strong>Resumo:</strong>{' '}
-              {loadingResumo
+              {/* {loadingResumo
                 ? 'Carregando...'
                 : erroResumo
                 ? erroResumo
-                : resumo}
+                : resumo} */
+                selectedMidia.resumo || 'Resumo não disponível'}
             </p>
+         
           </div>
         )}
       </Modal>

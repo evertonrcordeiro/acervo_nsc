@@ -2,4 +2,9 @@ django==5.1.5
 psycopg2-binary>=2.9
 django-cors-headers>=3.14.0
 djangorestframework>=3.14.0
-djangorestframework-simplejwt
+djangorestframework-simplejwt>=5.2.2
+
+python-ldap==3.4.0
+django-auth-ldap>=5
+
+ldap3

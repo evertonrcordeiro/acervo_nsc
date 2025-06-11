@@ -3,6 +3,7 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import ListaMidias from './components/ListaMidias';
 import PrivateRoute from './routes/PrivateRoute';
+
 export default function App() {
   return (
     <Routes>
