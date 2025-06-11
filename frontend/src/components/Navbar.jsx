@@ -24,7 +24,7 @@ export default function Navbar() {
     <header className="bg-blue-600 text-white p-4 shadow-md flex justify-between items-center">
       <h1 className="text-xl font-bold">Painel Administrativo</h1>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-10">
         <div className="text-sm text-right leading-tight">
           <p className="font-semibold">{usuario}</p>
           <p className="text-xs text-gray-200">Login: {loginHorario}</p>

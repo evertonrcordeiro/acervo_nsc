@@ -124,13 +124,13 @@ export default function ListaMidias() {
               title={midia.titulo}
               onClick={() => setSelectedMidia(midia)}
             >
-              <h3 className="font-semibold text-xl text-blue-700 mb-1 truncate">
-                Doc.: <strong>{midia.cod_documento}</strong>
+              <h3 className="font-semibold text-x text-blue-700 mb-1 truncate">
+                Doc.: <strong>{midia.cod_documento}</strong> -  Num. Fita: <strong>{midia.num_fita}</strong>
               </h3>
 
-              <p className="text-sm text-gray-600">
+              {/* <p className="text-sm text-gray-600">
                 Num. Fita: <strong>{midia.num_fita}</strong>
-              </p> 
+              </p>  */}
                           
               <p className="text-sm text-gray-600">
                 {midia.titulo} 
