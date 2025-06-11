@@ -8,3 +8,5 @@ python-ldap==3.4.0
 django-auth-ldap>=5
 
 ldap3
+celery>=5.5.0
+redis>= 6.0

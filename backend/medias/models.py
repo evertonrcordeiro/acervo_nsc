@@ -20,7 +20,7 @@ class Local(models.Model):
         ordering = ['nome']
 
     def __str__(self):
-        return self.local
+        return self.nome
 
 class Fonte(models.Model):
     nome = models.CharField(max_length=100, unique=True)
@@ -34,7 +34,7 @@ class Fonte(models.Model):
         ordering = ['nome']
 
     def __str__(self):
-        return self.fonte
+        return self.nome
 
 class Programa(models.Model):
     id = models.AutoField(primary_key=True)
@@ -257,56 +257,3 @@ def extract_metadata(self):
         }
     return None            
 
-
-# import os
-# import uuid
-# from django.db import models
-# from django.dispatch import receiver
-# from django.db.models.signals import pre_delete
-# from django.core.exceptions import ValidationError
-
-# class Media(models.Model):
-#     TIPO_CHOICES = [
-#         ('imagem', 'Imagem'),
-#         ('video', 'Vídeo'),
-#         ('audio', 'Áudio'),
-#         ('documento', 'Documento'),
-#     ]
-
-#     id = models.UUIDField(
-#         primary_key=True,
-#         default=uuid.uuid4,
-#         editable=False,
-#         unique=True
-#     )
-#     titulo = models.CharField(max_length=255)
-#     arquivo = models.FileField(upload_to='medias/')
-#     nome_original = models.CharField(max_length=255, blank=True)
-#     tipo = models.CharField(max_length=50, choices=TIPO_CHOICES)
-#     data_upload = models.DateTimeField(auto_now_add=True)
-
-#     class Meta:
-#         verbose_name = 'Mídia'
-#         verbose_name_plural = 'Mídias'
-#         ordering = ['-data_upload']
-
-#     def __str__(self):
-#         return f"{self.titulo} ({self.id})"
-
-#     def save(self, *args, **kwargs):
-#         if not self.nome_original and self.arquivo:
-#             self.nome_original = self.arquivo.name
-        
-#         if self.arquivo:
-#             ext = os.path.splitext(self.arquivo.name)[1]
-#             self.arquivo.name = f"{self.id}{ext}"
-        
-#         super().save(*args, **kwargs)
-
-# @receiver(pre_delete, sender=Media)
-# def delete_media_file(sender, instance, **kwargs):
-#     if instance.arquivo and os.path.isfile(instance.arquivo.path):
-#         try:
-#             os.remove(instance.arquivo.path)
-#         except:
-#             pass

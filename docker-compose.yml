@@ -6,13 +6,49 @@ services:
     build:
       context: ./backend
     volumes:
-      - .:/app
+      - ./backend:/app
     ports:
       - "8000:8000"
     env_file:
       - .env
     depends_on:
       - postgres
+      - redis
+    command: bash -c "python manage.py runserver 0.0.0.0:8000"
+
+  celery:
+    container_name: celery_worker
+    build:
+      context: ./backend
+    volumes:
+      - ./backend:/app
+    command: celery -A backend worker --loglevel=info
+
+    depends_on:
+      - backend
+      - redis
+    env_file:
+      - .env
+
+  watchfolder:
+    container_name: watchfolder
+    build:
+      context: ./backend
+    volumes:
+      - ./backend:/app
+    command: python watchfolder.py
+    depends_on:
+      - backend
+      - redis
+    env_file:
+      - .env
+
+  redis:
+    container_name: redis
+    image: redis:7
+    restart: always
+    ports:
+      - "6379:6379"
 
   postgres:
     container_name: postgres
@@ -33,12 +69,12 @@ services:
       context: ./frontend
     volumes:
       - ./frontend:/app
-      - /app/node_modules  # monta vazio para evitar conflito com host
+      - /app/node_modules
     ports:
       - "5173:5173"
     command: ["npm", "run", "dev", "--", "--host"]
     environment:
-      - CHOKIDAR_USEPOLLING=true  # ajuda no hot reload dentro do container
+      - CHOKIDAR_USEPOLLING=true
     depends_on:
       - backend
 
