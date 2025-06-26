@@ -20,6 +20,8 @@ COPY . /app/
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
+
+
 # Expõe a porta do Django
 EXPOSE 8000
 

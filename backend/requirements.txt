@@ -4,6 +4,8 @@ django-cors-headers>=3.14.0
 djangorestframework>=3.14.0
 djangorestframework-simplejwt>=5.2.2
 
+django-filter>=25
+
 python-ldap==3.4.0
 django-auth-ldap>=5
 

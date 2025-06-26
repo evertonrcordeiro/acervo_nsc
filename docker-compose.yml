@@ -6,7 +6,7 @@ services:
     build:
       context: ./backend
     volumes:
-      - ./backend:/app
+      - .:/app
     ports:
       - "8000:8000"
     env_file:
@@ -14,16 +14,15 @@ services:
     depends_on:
       - postgres
       - redis
-    command: bash -c "python manage.py runserver 0.0.0.0:8000"
+    command: bash -c "cd backend && python manage.py runserver 0.0.0.0:8000"
 
   celery:
     container_name: celery_worker
     build:
       context: ./backend
     volumes:
-      - ./backend:/app
-    command: celery -A backend worker --loglevel=info
-
+      - .:/app
+    command: bash -c "cd backend && celery -A acervo worker --loglevel=info"
     depends_on:
       - backend
       - redis
@@ -35,8 +34,8 @@ services:
     build:
       context: ./backend
     volumes:
-      - ./backend:/app
-    command: python watchfolder.py
+      - .:/app
+    command: bash -c "cd backend && python watchfolder/watchfolder.py"
     depends_on:
       - backend
       - redis

@@ -11,7 +11,7 @@ User = get_user_model()
 class Local(models.Model):
     nome = models.CharField(max_length=100, unique=True)
     descricao = models.TextField(null=True, blank=True)
-    data_criacao = models.DateTimeField(auto_now_add=True)
+    #data_criacao = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         managed = True
@@ -62,16 +62,25 @@ class Midia(models.Model):
 
     # id = models.AutoField(primary_key=True)
     # cod_documento = models.CharField('Cód Doc.', max_length=50, null=True, blank=True)
-    cod_documento = models.CharField('Cód Doc.', max_length=50, primary_key=True)
+    # cod_documento = models.CharField('Cód Doc.', max_length=50, primary_key=True)
+    cod_documento = models.BigIntegerField('Cód Doc.', primary_key=True)  # Agora é INTEGER
     num_fita = models.CharField(max_length=50, null=True, blank=True)
     # uuid = models.CharField(max_length=36, unique=True, null=True, blank=True)
-    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    uuid = models.UUIDField(
+        default=uuid.uuid4, 
+        editable=False, 
+        unique=True,
+        blank=True,
+        null=True        
+    )
     titulo = models.CharField(max_length=255)
     # nome_original = models.CharField(max_length=255)
     tipo_midia = models.CharField(
         max_length=10,
         choices=TipoMidia.choices,
-        default=TipoMidia.BRUTA
+        default=TipoMidia.BRUTA,
+        blank=True,
+        null=True
     )
     
     arquivo = models.FileField(
@@ -83,10 +92,19 @@ class Midia(models.Model):
     nome_original = models.CharField(
         'Nome Original do Arquivo', 
         max_length=255, 
-        blank=True
+        blank=True,
+        null=True
     )
-    data_cadastro = models.DateTimeField(auto_now_add=True)
-    data_alteracao = models.DateTimeField(auto_now=True)
+    data_cadastro = models.DateTimeField(
+        auto_now_add=True,
+        blank=True,
+        null=True        
+    )
+    data_alteracao = models.DateTimeField(
+        auto_now=True,
+        blank=True,
+        null=True        
+    )
     duracao = models.CharField(max_length=20, null=True, blank=True)
     timecode = models.CharField(max_length=20, null=True, blank=True)
     data_inclusao = models.DateField(null=True, blank=True)
@@ -151,19 +169,45 @@ class Resumo(models.Model):
     id = models.AutoField(primary_key=True)
     id_midia = models.OneToOneField(
         Midia,
+        to_field='cod_documento',
         on_delete=models.CASCADE,
-        db_column='id_midia'
+        db_column='id_midia',
+        db_index=True,  # Adiciona índice para otimizar consultas
+        related_name='resumo'  # Nome claro para a relação reversa
     )
     resumo = models.TextField()
-    data_criacao = models.DateTimeField(auto_now_add=True)
-    data_atualizacao = models.DateTimeField(auto_now=True)
+    data_criacao = models.DateTimeField(
+        auto_now_add=True,
+        blank=True,
+        null=True        
+    )
+    data_atualizacao = models.DateTimeField(
+        auto_now=True,
+        blank=True,
+        null=True
+    )
 
     class Meta:
         managed = True
         db_table = 'resumos'
+        indexes = [
+            models.Index(fields=['id_midia'], name='idx_resumo_id_midia'),  # Índice adicional
+            models.Index(fields=['data_criacao'], name='idx_resumo_data_criacao'),  # Índice para datas
+        ]
+        ordering = ['-data_criacao']  # Ordenação padrão
 
     def __str__(self):
-        return f"Resumo para {self.id_midia.cod_documento , self.id_midia.titulo}"
+        return f"Resumo para {self.id_midia.cod_documento} - {self.id_midia.titulo}"
+
+    # Propriedade para acesso rápido ao código do documento
+    @property
+    def cod_documento(self):
+        return self.id_midia.cod_documento
+
+    # Propriedade para acesso rápido ao título
+    @property
+    def titulo_midia(self):
+        return self.id_midia.titulo
 
 
 

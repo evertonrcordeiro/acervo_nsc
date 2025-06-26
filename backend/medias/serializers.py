@@ -2,6 +2,7 @@
 from rest_framework import serializers
 from .models import Midia, Local, Fonte, Programa, Resumo
 
+
 class LocalSerializer(serializers.ModelSerializer):
     class Meta:
         model = Local
@@ -26,10 +27,13 @@ class ResumoSerializer(serializers.ModelSerializer):
 
 class MidiaSerializer(serializers.ModelSerializer):
     resumo = serializers.SerializerMethodField()
+    id_local = LocalSerializer()  # aninha o local completo
 
     class Meta:
         model = Midia
-        fields = ['cod_documento', 'num_fita', 'titulo', 'resumo']
+        # fields = ['cod_documento', 'num_fita', 'titulo', 'resumo', 
+        # 'data_cadastro', 'data_inclusao', 'id_fonte', 'id_programa', 'id_local']
+        fields = '__all__'        
 
     def get_resumo(self, obj):
         try:

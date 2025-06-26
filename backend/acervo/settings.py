@@ -22,6 +22,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_simplejwt',
+    # 'django-filter',
+    'django_filters',
     'medias',
 ]
 
@@ -149,7 +151,7 @@ AUTH_LDAP_GLOBAL_OPTIONS = {
 
 # Ordem correta: tenta local primeiro
 AUTHENTICATION_BACKENDS = [
-    'django_auth_ldap.backend.LDAPBackend',
+    # 'django_auth_ldap.backend.LDAPBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
 

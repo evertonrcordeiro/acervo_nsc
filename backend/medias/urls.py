@@ -1,7 +1,7 @@
 # medias/urls.py
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import MidiaViewSet, LocalViewSet, FonteViewSet, ProgramaViewSet, ResumoViewSet, MidiaListView, login_view, CustomAuthToken, ResumoDetail
+from .views import MidiaViewSet, LocalViewSet, FonteViewSet, ProgramaViewSet, ResumoViewSet, MidiaListView, login_view, CustomAuthToken
 
 router = DefaultRouter()
 # router.register(r'midias', MidiaViewSet)
@@ -16,6 +16,7 @@ urlpatterns = [
     path('token-auth/', CustomAuthToken.as_view()),
     # path('api/midias/', MidiaListView.as_view(), name='midia-list'),
     path('midias/', MidiaListView.as_view()),
-    path('api/resumo/', ResumoDetail.as_view(), name='resumo-detail'),
+    
+    # path('api/resumo/', ResumoDetail.as_view(), name='resumo-detail'),
     # path('api/midias/', MidiaListView.as_view(), name='midia-list'),
 ]
