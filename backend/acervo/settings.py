@@ -22,7 +22,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_simplejwt',
-    # 'django-filter',
     'django_filters',
     'medias',
 ]
@@ -63,6 +62,23 @@ TEMPLATES = [{
 
 WSGI_APPLICATION = 'acervo.wsgi.application'
 
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django.db.backends': {
+            'level': 'DEBUG',  # Mostra os SQLs executados
+            'handlers': ['console'],
+        },
+    },
+    
+}
+
 # === DB ===
 DATABASES = {
     'default': {
@@ -87,6 +103,10 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.SearchFilter',
+    ]    
 }
 
 SIMPLE_JWT = {
