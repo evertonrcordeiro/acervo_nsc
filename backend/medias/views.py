@@ -216,17 +216,15 @@ class ProgramaAdminViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['get'])
     def termos_similares(self, request):
-        from django.db.models.functions import Lower
-
         termo_base = request.query_params.get('termo')
         if not termo_base:
             return Response({"erro": "Parametro 'termo' obrigatório."}, status=400)
 
-        similares = Programa.objects.annotate(nome_lower=Lower('nome')) \
-            .filter(nome_lower__icontains=termo_base.lower()) \
-            .values('id', 'nome')
+        similares = Programa.objects.annotate(
+            similarity=TrigramSimilarity('nome', termo_base)
+        ).filter(similarity__gt=0.3).order_by('-similarity')[:20]
 
-        return Response(list(similares))
+        return Response(list(similares.values('id', 'nome')))
 
     @action(detail=False, methods=['post'])
     @transaction.atomic
@@ -242,7 +240,6 @@ class ProgramaAdminViewSet(viewsets.ViewSet):
 
         return Response({"status": "ok", "substituidos": len(ids_substituir)})
 
-
 class FonteAdminViewSet(viewsets.ViewSet):
     """
     ViewSet para normalização de Fontes.
@@ -250,17 +247,15 @@ class FonteAdminViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['get'])
     def termos_similares(self, request):
-        from django.db.models.functions import Lower
-
         termo_base = request.query_params.get('termo')
         if not termo_base:
             return Response({"erro": "Parametro 'termo' obrigatório."}, status=400)
 
-        similares = Fonte.objects.annotate(nome_lower=Lower('nome')) \
-            .filter(nome_lower__icontains=termo_base.lower()) \
-            .values('id', 'nome')
+        similares = Fonte.objects.annotate(
+            similarity=TrigramSimilarity('nome', termo_base)
+        ).filter(similarity__gt=0.3).order_by('-similarity')[:20]
 
-        return Response(list(similares))
+        return Response(list(similares.values('id', 'nome')))
 
     @action(detail=False, methods=['post'])
     @transaction.atomic
@@ -277,6 +272,7 @@ class FonteAdminViewSet(viewsets.ViewSet):
         return Response({"status": "ok", "substituidos": len(ids_substituir)})
 
 
+        
 @api_view(['POST'])
 def login_view(request):
     username = request.data.get('username')

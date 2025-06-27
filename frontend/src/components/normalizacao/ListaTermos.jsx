@@ -1,18 +1,31 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 
-export default function ListaTermos({ termos, termoCorreto, setTermoCorreto, termosSelecionados, setTermosSelecionados }) {
+export default function ListaTermos({
+  termos,
+  termoCorreto,
+  setTermoCorreto,
+  termosSelecionados,
+  setTermosSelecionados,
+}) {
+  // Quando termoCorreto muda, seleciona todos os outros termos automaticamente
   useEffect(() => {
-    // Ao trocar o termo correto, limpa seleção de substituição
-    const novosSelecionados = termos
-      .filter((t) => t.id !== termoCorreto?.id)
-      .map((t) => t.id);
-    setTermosSelecionados(novosSelecionados);
+    if (!termoCorreto) {
+      setTermosSelecionados([]);
+      return;
+    }
+    const outros = termos.filter((t) => t.id !== termoCorreto.id);
+    setTermosSelecionados(outros);
   }, [termoCorreto, termos, setTermosSelecionados]);
 
-  const toggleSelecionado = (id) => {
-    setTermosSelecionados((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    );
+  // Manipula checkbox individual
+  const toggleSelecionado = (termo) => {
+    if (termosSelecionados.some((t) => t.id === termo.id)) {
+      // desmarcar
+      setTermosSelecionados(termosSelecionados.filter((t) => t.id !== termo.id));
+    } else {
+      // marcar
+      setTermosSelecionados([...termosSelecionados, termo]);
+    }
   };
 
   return (
@@ -22,31 +35,32 @@ export default function ListaTermos({ termos, termoCorreto, setTermoCorreto, ter
         <p className="text-gray-500">Nenhum termo similar encontrado.</p>
       ) : (
         <ul className="space-y-2">
-          {termos.map((r) => (
-            <li
-              key={r.id}
-              className={`p-2 rounded border flex items-center justify-between ${
-                termoCorreto?.id === r.id
-                  ? 'bg-blue-200 border-blue-700 font-semibold'
-                  : 'hover:bg-gray-100'
-              }`}
-            >
-              <span
-                className="flex-1 cursor-pointer"
+          {termos.map((r) => {
+            const isCorreto = termoCorreto?.id === r.id;
+            const isSelecionado = termosSelecionados.some((t) => t.id === r.id);
+            return (
+              <li
+                key={r.id}
                 onClick={() => setTermoCorreto(r)}
+                className={`cursor-pointer p-2 rounded border flex items-center justify-between ${
+                  isCorreto
+                    ? 'bg-blue-200 border-blue-700 font-semibold'
+                    : 'hover:bg-gray-100'
+                }`}
               >
-                {r.nome}
-              </span>
-
-              {termoCorreto?.id !== r.id && (
-                <input
-                  type="checkbox"
-                  checked={termosSelecionados.includes(r.id)}
-                  onChange={() => toggleSelecionado(r.id)}
-                />
-              )}
-            </li>
-          ))}
+                <span>{r.nome}</span>
+                {!isCorreto && (
+                  <input
+                    type="checkbox"
+                    checked={isSelecionado}
+                    onClick={(e) => e.stopPropagation()} // Evita que o clique no checkbox dispare o onClick do li
+                    onChange={() => toggleSelecionado(r)}
+                    aria-label={`Selecionar termo ${r.nome} para substituição`}
+                  />
+                )}
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>

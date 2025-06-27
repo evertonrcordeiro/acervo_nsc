@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-export default function ConfirmarNormalizacao({ termoCorreto, termosParaSubstituir, entidade, onSucesso }) {
+export default function ConfirmarNormalizacao({ termoCorreto, termosParaSubstituir, onSucesso, entidade }) {
   const [loading, setLoading] = useState(false);
   const [erro, setErro] = useState('');
 
@@ -20,7 +20,7 @@ export default function ConfirmarNormalizacao({ termoCorreto, termosParaSubstitu
         },
         body: JSON.stringify({
           id_destino: termoCorreto.id,
-          ids_substituir: termosParaSubstituir,
+          ids_substituir: termosParaSubstituir.map((t) => t.id),
         }),
       });
 
@@ -43,10 +43,10 @@ export default function ConfirmarNormalizacao({ termoCorreto, termosParaSubstitu
       <p>
         Termo correto: <strong>{termoCorreto.nome}</strong>
       </p>
-      <p>Termos selecionados para substituir:</p>
-      <ul className="list-disc list-inside mb-2">
+      <p>Termos que serão substituídos:</p>
+      <ul className="list-disc list-inside mb-2 max-h-40 overflow-auto">
         {termosParaSubstituir.map((t) => (
-          <li key={t}>{t}</li>
+          <li key={t.id}>{t.nome}</li>
         ))}
       </ul>
       {erro && <p className="text-red-600 mb-2">{erro}</p>}

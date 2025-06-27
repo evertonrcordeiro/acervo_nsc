@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import BuscaTermos from './normalizacao/BuscaTermos';
 import ListaTermos from './normalizacao/ListaTermos';
 import ConfirmarNormalizacao from './normalizacao/ConfirmarNormalizacao';
@@ -9,6 +9,16 @@ export default function NormalizacaoTermos() {
   const [resultados, setResultados] = useState([]);
   const [termoCorreto, setTermoCorreto] = useState(null);
   const [termosSelecionados, setTermosSelecionados] = useState([]);
+
+  // Quando termoCorreto muda, seleciona automaticamente todos os outros termos
+  useEffect(() => {
+    if (!termoCorreto) {
+      setTermosSelecionados([]);
+      return;
+    }
+    const outrosTermos = resultados.filter((r) => r.id !== termoCorreto.id);
+    setTermosSelecionados(outrosTermos);
+  }, [termoCorreto, resultados]);
 
   const handleBuscar = async () => {
     if (termo.trim().length < 3) return;
