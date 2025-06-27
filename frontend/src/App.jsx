@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import ListaMidias from './components/ListaMidias';
+import Normalizacao from './components/Normalizacao';
 import PrivateRoute from './routes/PrivateRoute';
 
 export default function App() {
@@ -21,6 +22,14 @@ export default function App() {
         element={
           <PrivateRoute>
             <ListaMidias />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/normalizacao"
+        element={
+          <PrivateRoute>
+            <Normalizacao />
           </PrivateRoute>
         }
       />

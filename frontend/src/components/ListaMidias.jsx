@@ -4,6 +4,7 @@ import ErrorMessage from './_ErrorMessage';
 import Paginacao from './_Paginacao';
 
 export default function ListaMidias() {
+  // Estados principais
   const [midias, setMidias] = useState([]);
   const [erro, setErro] = useState('');
   const [loading, setLoading] = useState(false);
@@ -12,42 +13,94 @@ export default function ListaMidias() {
   const [loadingResumo, setLoadingResumo] = useState(false);
   const [erroResumo, setErroResumo] = useState('');
 
+  // Estados para paginação e filtro
   const [currentUrl, setCurrentUrl] = useState('http://localhost:8000/api/midias/');
   const [nextUrl, setNextUrl] = useState(null);
   const [prevUrl, setPrevUrl] = useState(null);
   const [filtro, setFiltro] = useState('');
 
+  // Filtros adicionais
+  const [idLocal, setIdLocal] = useState('');
+  const [idPrograma, setIdPrograma] = useState('');
+  const [dataInclusaoAfter, setDataInclusaoAfter] = useState('');
+  const [dataInclusaoBefore, setDataInclusaoBefore] = useState('');
+
+  // Dados para selects de filtro
+  const [locais, setLocais] = useState([]);
+  const [programas, setProgramas] = useState([]);
+
+  // Paginação detalhada
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const pageSize = 10;
 
+  // Contadores e filtros de tipo resultado
   const [countOr, setCountOr] = useState(0);
   const [countAnd, setCountAnd] = useState(0);
   const [countPorTermo, setCountPorTermo] = useState({});
-
   const [filtroTipoResultado, setFiltroTipoResultado] = useState('todos'); // 'todos', 'ou', 'e'
 
-  // Refaz a URL da API com filtro, paginação e tipo_resultado
-  const construirUrl = (page = 1, search = filtro, tipoResultado = filtroTipoResultado) => {
+  // --- Função para construir URL com parâmetros de filtro/paginação ---
+  const construirUrl = (
+    page = 1,
+    search = filtro,
+    tipoResultado = filtroTipoResultado,
+    local = idLocal,
+    programa = idPrograma,
+    after = dataInclusaoAfter,
+    before = dataInclusaoBefore
+  ) => {
     const baseUrl = 'http://localhost:8000/api/midias/';
     const params = new URLSearchParams();
 
-    if (search.trim()) {
-      params.append('search', search.trim());
-    }
+    if (search.trim()) params.append('search', search.trim());
+    if (page > 1) params.append('page', page);
+    if (tipoResultado && tipoResultado !== 'todos') params.append('tipo_resultado', tipoResultado);
+    if (local) params.append('id_local', local);
+    if (programa) params.append('id_programa', programa);
+    if (after) params.append('data_inclusao_after', after);
+    if (before) params.append('data_inclusao_before', before);
 
-    if (page > 1) {
-      params.append('page', page);
-    }
-
-    if (tipoResultado && tipoResultado !== 'todos') {
-      params.append('tipo_resultado', tipoResultado);
-    }
-
-    const url = baseUrl + (params.toString() ? `?${params.toString()}` : '');
-    return url;
+    return baseUrl + (params.toString() ? `?${params.toString()}` : '');
   };
 
+  // --- Buscar locais e programas para filtros ---
+  useEffect(() => {
+    const token = localStorage.getItem('access_token');
+
+    const fetchLocais = async () => {
+      try {
+        const res = await fetch('http://localhost:8000/api/locais/', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setLocais(data.results || data);
+        }
+      } catch (e) {
+        // Opcional: log ou tratamento
+      }
+    };
+
+    const fetchProgramas = async () => {
+      try {
+        const res = await fetch('http://localhost:8000/api/programas/', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setProgramas(data.results || data);
+        }
+      } catch (e) {
+        // Opcional: log ou tratamento
+      }
+    };
+
+    fetchLocais();
+    fetchProgramas();
+  }, []);
+
+  // --- Buscar mídias (listagem) sempre que currentUrl muda ---
   useEffect(() => {
     const fetchMidias = async () => {
       setLoading(true);
@@ -60,9 +113,7 @@ export default function ListaMidias() {
 
       try {
         const response = await fetch(currentUrl, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         });
 
         if (!response.ok) throw new Error('Erro ao buscar mídias');
@@ -73,8 +124,7 @@ export default function ListaMidias() {
           setMidias(data.results);
           setNextUrl(data.next);
           setPrevUrl(data.previous);
-          const total = data.count || 0;
-          setTotalPages(Math.ceil(total / pageSize));
+          setTotalPages(Math.ceil((data.count || 0) / pageSize));
 
           const urlObj = new URL(currentUrl);
           const page = urlObj.searchParams.get('page');
@@ -96,23 +146,22 @@ export default function ListaMidias() {
     fetchMidias();
   }, [currentUrl]);
 
+  // --- Atualizar URL ao mudar filtros ---
   useEffect(() => {
-    setCurrentUrl(construirUrl(1, filtro, filtroTipoResultado));
-  }, [filtroTipoResultado]);
+    setCurrentUrl(
+      construirUrl(
+        1,
+        filtro,
+        filtroTipoResultado,
+        idLocal,
+        idPrograma,
+        dataInclusaoAfter,
+        dataInclusaoBefore
+      )
+    );
+  }, [filtro, filtroTipoResultado, idLocal, idPrograma, dataInclusaoAfter, dataInclusaoBefore]);
 
-  const handleBuscar = () => {
-    setCurrentUrl(construirUrl(1, filtro, filtroTipoResultado));
-  };
-
-  const handlePularPagina = () => {
-    if (currentPage >= 1 && currentPage <= totalPages) {
-      setCurrentUrl(construirUrl(currentPage, filtro, filtroTipoResultado));
-    }
-  };
-
-  // Não precisa filtrar no frontend (API já filtra)
-  const midiasFiltradas = midias;
-
+  // --- Buscar resumo ao selecionar mídia ---
   useEffect(() => {
     if (!selectedMidia) {
       setResumo('');
@@ -131,14 +180,13 @@ export default function ListaMidias() {
         const response = await fetch(
           `http://localhost:8000/api/resumos/por_documento/?cod_documento=${selectedMidia.cod_documento}`,
           {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+            headers: { Authorization: `Bearer ${token}` },
           }
         );
 
         if (response.status === 404) {
           setResumo('Resumo ainda não foi cadastrado.');
+          setLoadingResumo(false);
           return;
         }
 
@@ -156,25 +204,117 @@ export default function ListaMidias() {
     fetchResumo();
   }, [selectedMidia]);
 
+  // --- Handlers para busca e paginação ---
+  const handleBuscar = () => {
+    setCurrentUrl(
+      construirUrl(
+        1,
+        filtro,
+        filtroTipoResultado,
+        idLocal,
+        idPrograma,
+        dataInclusaoAfter,
+        dataInclusaoBefore
+      )
+    );
+  };
+
+  const handlePularPagina = () => {
+    if (currentPage >= 1 && currentPage <= totalPages) {
+      setCurrentUrl(
+        construirUrl(
+          currentPage,
+          filtro,
+          filtroTipoResultado,
+          idLocal,
+          idPrograma,
+          dataInclusaoAfter,
+          dataInclusaoBefore
+        )
+      );
+    }
+  };
+
+  // midiasFiltradas = midias pois a API já filtra no backend
+  const midiasFiltradas = midias;
+
   return (
     <div className="p-4 max-w-4xl mx-auto flex flex-col min-h-screen">
       <h2 className="text-3xl font-extrabold mb-6 text-center text-blue-700 drop-shadow-sm">
         Lista de Mídias
       </h2>
 
-      <div className="mb-4 flex gap-2">
+      {/* Filtros e busca */}
+      <div className="mb-4 flex flex-wrap gap-2 items-end">
         <input
           type="text"
           placeholder="Buscar por título, código ou fita..."
-          className="flex-grow p-2 border rounded shadow-sm"
+          className="flex-grow p-2 border rounded shadow-sm min-w-[180px]"
           value={filtro}
           onChange={(e) => setFiltro(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleBuscar()}
           aria-label="Campo de busca"
         />
+
+        <select
+          value={idLocal}
+          onChange={(e) => setIdLocal(e.target.value)}
+          className="p-2 border rounded shadow-sm"
+          aria-label="Filtro por local"
+        >
+          <option value="">Todos os locais</option>
+          {locais.map((local) => (
+            <option key={local.id} value={local.id}>
+              {local.nome}
+            </option>
+          ))}
+        </select>
+
+        <select
+          value={idPrograma}
+          onChange={(e) => setIdPrograma(e.target.value)}
+          className="p-2 border rounded shadow-sm"
+          aria-label="Filtro por programa"
+        >
+          <option value="">Todos os programas</option>
+          {programas.map((prog) => (
+            <option key={prog.id} value={prog.id}>
+              {prog.nome}
+            </option>
+          ))}
+        </select>
+
+        <div className="flex flex-col text-xs">
+          <label htmlFor="data-inclusao-after" className="mb-1">
+            Data Inclusão (de)
+          </label>
+          <input
+            type="date"
+            id="data-inclusao-after"
+            value={dataInclusaoAfter}
+            onChange={(e) => setDataInclusaoAfter(e.target.value)}
+            className="p-1 border rounded shadow-sm"
+            aria-label="Data de inclusão a partir de"
+          />
+        </div>
+
+        <div className="flex flex-col text-xs">
+          <label htmlFor="data-inclusao-before" className="mb-1">
+            Data Inclusão (até)
+          </label>
+          <input
+            type="date"
+            id="data-inclusao-before"
+            value={dataInclusaoBefore}
+            onChange={(e) => setDataInclusaoBefore(e.target.value)}
+            className="p-1 border rounded shadow-sm"
+            aria-label="Data de inclusão até"
+          />
+        </div>
+
         <button
           onClick={handleBuscar}
-          className="bg-blue-700 text-white px-4 rounded hover:bg-blue-800 transition"
+          className="bg-blue-700 text-white px-4 rounded hover:bg-blue-800 transition whitespace-nowrap"
           disabled={loading}
           aria-label="Botão buscar"
         >
@@ -182,6 +322,7 @@ export default function ListaMidias() {
         </button>
       </div>
 
+      {/* Resultados e filtros tipo resultado */}
       {filtro.trim() && (
         <section
           className="mb-6 p-4 bg-white rounded-lg shadow-md border border-gray-200 max-h-64 overflow-y-auto"
@@ -249,6 +390,7 @@ export default function ListaMidias() {
         </section>
       )}
 
+      {/* Estado carregando, erro e lista */}
       {loading && <LoadingSkeleton count={6} />}
       {erro && <ErrorMessage message={erro} />}
       {!loading && !erro && midiasFiltradas.length === 0 && (
@@ -280,7 +422,8 @@ export default function ListaMidias() {
                   <div>
                     <div className="flex justify-between items-center w-full">
                       <div className="text-sm sm:text-base font-medium text-blue-800">
-                        Doc.: <strong>{midia.cod_documento}</strong> – Fita: <strong>{midia.num_fita}</strong>
+                        Doc.: <strong>{midia.cod_documento}</strong> – Fita:{' '}
+                        <strong>{midia.num_fita}</strong>
                       </div>
                       <div className="text-sm sm:text-base font-medium text-blue-800 text-right min-w-[550px]">
                         Data Inclusão: <strong>{midia.data_inclusao}</strong>
@@ -289,7 +432,6 @@ export default function ListaMidias() {
 
                     <p className="text-sm text-gray-600 mt-1">{midia.titulo}</p>
                   </div>
-
 
                   <div className="text-sm text-blue-600 hover:underline self-center">
                     {isSelected ? 'Ocultar' : 'Detalhes'}
@@ -327,6 +469,7 @@ export default function ListaMidias() {
         </ul>
       )}
 
+      {/* Paginação com botões anterior/próximo */}
       <Paginacao
         prevUrl={prevUrl}
         nextUrl={nextUrl}
@@ -335,6 +478,7 @@ export default function ListaMidias() {
         loading={loading}
       />
 
+      {/* Entrada para pular página específica */}
       {totalPages > 1 && (
         <div className="flex items-center justify-center mt-4 gap-4">
           <span className="text-sm text-gray-700">

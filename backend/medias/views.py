@@ -1,4 +1,4 @@
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, filters
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, action
@@ -6,9 +6,9 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import PageNumberPagination
 from django.contrib.auth import authenticate
-
 from django.db.models import Q, BooleanField, Case, When, Value
 from django.utils.dateparse import parse_date
+from django.db import transaction
 
 from .models import Midia, Local, Fonte, Programa, Resumo
 from .serializers import (
@@ -22,7 +22,8 @@ class MidiaPagination(PageNumberPagination):
 
 
 class MidiaViewSet(viewsets.ModelViewSet):
-    queryset = Midia.objects.select_related('id_local').all()
+    # Melhor incluir select_related para as FK usadas
+    queryset = Midia.objects.select_related('id_local', 'id_programa', 'id_fonte').all()
     serializer_class = MidiaSerializer
     pagination_class = MidiaPagination
 
@@ -36,6 +37,7 @@ class MidiaViewSet(viewsets.ModelViewSet):
         filtro_and_list = []
         count_por_termo = {}
 
+        # Atenção: count dentro do loop pode gerar muitos queries
         for termo in termos:
             filtro_termo_or = Q()
             count_por_termo[termo] = {}
@@ -70,9 +72,13 @@ class MidiaViewSet(viewsets.ModelViewSet):
 
         def aplicar_filtros_extras(queryset):
             if data_after:
-                queryset = queryset.filter(data_inclusao__gte=parse_date(data_after))
+                data_parsed = parse_date(data_after)
+                if data_parsed:
+                    queryset = queryset.filter(data_inclusao__gte=data_parsed)
             if data_before:
-                queryset = queryset.filter(data_inclusao__lte=parse_date(data_before))
+                data_parsed = parse_date(data_before)
+                if data_parsed:
+                    queryset = queryset.filter(data_inclusao__lte=data_parsed)
             if id_local:
                 queryset = queryset.filter(id_local_id=id_local)
             if id_programa:
@@ -105,6 +111,7 @@ class MidiaViewSet(viewsets.ModelViewSet):
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             paginated_response = self.get_paginated_response(serializer.data)
+            # Inserindo contadores extra no response
             paginated_response.data['count_or'] = queryset_or.count()
             paginated_response.data['count_and'] = queryset_and.count()
             paginated_response.data['count_por_termo'] = count_por_termo
@@ -123,6 +130,8 @@ class MidiaViewSet(viewsets.ModelViewSet):
 class LocalViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Local.objects.all()
     serializer_class = LocalSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['nome']
 
 
 class FonteViewSet(viewsets.ReadOnlyModelViewSet):
@@ -133,6 +142,8 @@ class FonteViewSet(viewsets.ReadOnlyModelViewSet):
 class ProgramaViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Programa.objects.all()
     serializer_class = ProgramaSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['nome']
 
 
 class ResumoViewSet(viewsets.ReadOnlyModelViewSet):
@@ -153,11 +164,123 @@ class ResumoViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(resumo)
         return Response(serializer.data)
 
+from rest_framework import viewsets
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from django.db import transaction
+from django.db.models.functions import Lower
+from .models import Local, Midia
+from .serializers import LocalSerializer  # Crie se ainda não tiver
+from django.contrib.postgres.search import TrigramSimilarity
+
+
+class LocalAdminViewSet(viewsets.ModelViewSet):
+    queryset = Local.objects.all()
+    serializer_class = LocalSerializer  # Você pode criar um serializer específico para admin se quiser
+
+    @action(detail=False, methods=['get'])
+    def termos_similares(self, request):
+        termo_base = request.query_params.get('termo')
+        if not termo_base:
+            return Response({"erro": "Parâmetro 'termo' obrigatório."}, status=400)
+
+        similares = (
+            Local.objects
+            .annotate(similaridade=TrigramSimilarity('nome', termo_base))
+            .filter(similaridade__gt=0.3)  # você pode ajustar esse threshold
+            .order_by('-similaridade')
+            .values('id', 'nome')[:50]
+        )
+
+        return Response(list(similares))
+
+    @action(detail=False, methods=['post'])
+    @transaction.atomic
+    def normalizar(self, request):
+        id_destino = request.data.get('id_destino')
+        ids_substituir = request.data.get('ids_substituir', [])
+
+        if not id_destino or not ids_substituir:
+            return Response({"erro": "Campos 'id_destino' e 'ids_substituir' obrigatórios."}, status=400)
+
+        Midia.objects.filter(id_local__in=ids_substituir).update(id_local=id_destino)
+        Local.objects.filter(id__in=ids_substituir).exclude(id=id_destino).delete()
+
+        return Response({"status": "ok", "substituidos": len(ids_substituir)})
+
+
+class ProgramaAdminViewSet(viewsets.ViewSet):
+    """
+    ViewSet para normalização de Programas.
+    """
+
+    @action(detail=False, methods=['get'])
+    def termos_similares(self, request):
+        from django.db.models.functions import Lower
+
+        termo_base = request.query_params.get('termo')
+        if not termo_base:
+            return Response({"erro": "Parametro 'termo' obrigatório."}, status=400)
+
+        similares = Programa.objects.annotate(nome_lower=Lower('nome')) \
+            .filter(nome_lower__icontains=termo_base.lower()) \
+            .values('id', 'nome')
+
+        return Response(list(similares))
+
+    @action(detail=False, methods=['post'])
+    @transaction.atomic
+    def normalizar(self, request):
+        id_destino = request.data.get('id_destino')
+        ids_substituir = request.data.get('ids_substituir', [])
+
+        if not id_destino or not ids_substituir:
+            return Response({"erro": "Campos 'id_destino' e 'ids_substituir' obrigatórios."}, status=400)
+
+        Midia.objects.filter(id_programa__in=ids_substituir).update(id_programa=id_destino)
+        Programa.objects.filter(id__in=ids_substituir).exclude(id=id_destino).delete()
+
+        return Response({"status": "ok", "substituidos": len(ids_substituir)})
+
+
+class FonteAdminViewSet(viewsets.ViewSet):
+    """
+    ViewSet para normalização de Fontes.
+    """
+
+    @action(detail=False, methods=['get'])
+    def termos_similares(self, request):
+        from django.db.models.functions import Lower
+
+        termo_base = request.query_params.get('termo')
+        if not termo_base:
+            return Response({"erro": "Parametro 'termo' obrigatório."}, status=400)
+
+        similares = Fonte.objects.annotate(nome_lower=Lower('nome')) \
+            .filter(nome_lower__icontains=termo_base.lower()) \
+            .values('id', 'nome')
+
+        return Response(list(similares))
+
+    @action(detail=False, methods=['post'])
+    @transaction.atomic
+    def normalizar(self, request):
+        id_destino = request.data.get('id_destino')
+        ids_substituir = request.data.get('ids_substituir', [])
+
+        if not id_destino or not ids_substituir:
+            return Response({"erro": "Campos 'id_destino' e 'ids_substituir' obrigatórios."}, status=400)
+
+        Midia.objects.filter(id_fonte__in=ids_substituir).update(id_fonte=id_destino)
+        Fonte.objects.filter(id__in=ids_substituir).exclude(id=id_destino).delete()
+
+        return Response({"status": "ok", "substituidos": len(ids_substituir)})
+
 
 @api_view(['POST'])
 def login_view(request):
     username = request.data.get('username')
-    password = request.data.get('senha')
+    password = request.data.get('senha')  # Poderia ser 'password' para seguir padrão Django
 
     user = authenticate(username=username, password=password)
     if user is not None:
@@ -174,7 +297,12 @@ def login_view(request):
 class CustomAuthToken(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
-        token = Token.objects.get(key=response.data['token'])
+        # Confirmar que response.data tem 'token'
+        token_key = response.data.get('token')
+        if not token_key:
+            return Response({"error": "Token não encontrado"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        token = Token.objects.get(key=token_key)
         return Response({
             'token': token.key,
             'user_id': token.user_id,

@@ -5,7 +5,7 @@ from .models import Midia, Local, Fonte, Programa, Resumo
 class LocalSerializer(serializers.ModelSerializer):
     class Meta:
         model = Local
-        fields = '__all__'
+        fields = ['id', 'nome']
 
 
 class FonteSerializer(serializers.ModelSerializer):

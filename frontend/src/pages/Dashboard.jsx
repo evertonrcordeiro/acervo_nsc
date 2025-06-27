@@ -1,6 +1,7 @@
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
 import ListaMidias from '../components/ListaMidias';
+import Normalizacao from '../components/Normalizacao'; // importe o componente novo
 import { useDashboard } from '../context/DashboardContext';
 
 export default function Dashboard() {
@@ -28,6 +29,7 @@ export default function Dashboard() {
             </div>
           )}
           {view === 'midias' && <ListaMidias />}
+          {view === 'normalizacao' && <Normalizacao />}
         </main>
       </div>
     </div>
