@@ -18,7 +18,7 @@ from .serializers import (
 
 
 class MidiaPagination(PageNumberPagination):
-    page_size = 10
+    page_size = 20
 
 
 class MidiaViewSet(viewsets.ModelViewSet):

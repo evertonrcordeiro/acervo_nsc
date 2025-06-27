@@ -72,12 +72,28 @@ LOGGING = {
     },
     'loggers': {
         'django.db.backends': {
-            'level': 'DEBUG',  # Mostra os SQLs executados
+            'level': 'INFO',  # Mostra os SQLs executados
             'handlers': ['console'],
         },
     },
     
 }
+
+# Nível	Recomendação de uso
+# DEBUG	Desenvolvimento (log de queries, variáveis internas)
+# INFO	Produção (logs de ações importantes)
+# WARNING	Produção (avisos de problemas não críticos)
+# ERROR	Produção (erros que devem ser monitorados)
+# CRITICAL	Emergências (problemas graves que exigem ação imediata)
+# 'django.db.backends': {
+#     'level': 'WARNING',  # Quase não emite logs (só avisos/erros graves)
+#     # ou
+#     'level': 'ERROR',   # Apenas erros
+#     # ou desabilitar totalmente:
+#     'handlers': ['null'],  # Se configurado no handlers
+# }
+
+
 
 # === DB ===
 DATABASES = {

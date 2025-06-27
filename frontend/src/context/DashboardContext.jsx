@@ -8,9 +8,10 @@ export const DashboardProvider = ({ children }) => {
   const mostrarMidias = () => setView('midias');
   const mostrarHome = () => setView('home');
   const mostrarNormalizacao = () => setView('normalizacao')
+  const CadastrarMidia = () => setView('cadastrarmidias')
 
   return (
-    <DashboardContext.Provider value={{ view, mostrarMidias, mostrarHome, mostrarNormalizacao }}>
+    <DashboardContext.Provider value={{ view, mostrarMidias, mostrarHome, mostrarNormalizacao, CadastrarMidia }}>
       {children}
     </DashboardContext.Provider>
   );

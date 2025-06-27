@@ -2,7 +2,7 @@ import { useDashboard } from '../context/DashboardContext';
 import { NavLink } from 'react-router-dom';
 
 export default function Sidebar() {
-  const { mostrarHome, mostrarMidias, mostrarNormalizacao } = useDashboard();
+  const { mostrarHome, mostrarMidias, mostrarNormalizacao, CadastrarMidia } = useDashboard();
 
   const linkClasses =
     'block w-full text-left hover:bg-gray-700 p-2 rounded transition';
@@ -19,6 +19,9 @@ export default function Sidebar() {
         <button onClick={mostrarNormalizacao} className={linkClasses}>
           Normalização
         </button>
+        <button onClick={CadastrarMidia} className={linkClasses}>
+          Cadastro De Mídias
+        </button>        
         <button
           disabled
           className="block w-full text-left hover:bg-gray-700 p-2 rounded text-gray-400 cursor-not-allowed"

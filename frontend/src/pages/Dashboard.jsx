@@ -3,6 +3,7 @@ import Sidebar from '../components/Sidebar';
 import ListaMidias from '../components/ListaMidias';
 import Normalizacao from '../components/Normalizacao'; // importe o componente novo
 import { useDashboard } from '../context/DashboardContext';
+import CadastrarMidia from '../pages/CadastrarMidia';
 
 export default function Dashboard() {
   const { view } = useDashboard();
@@ -30,6 +31,7 @@ export default function Dashboard() {
           )}
           {view === 'midias' && <ListaMidias />}
           {view === 'normalizacao' && <Normalizacao />}
+          {view === 'cadastrarmidias' && <CadastrarMidia />}
         </main>
       </div>
     </div>

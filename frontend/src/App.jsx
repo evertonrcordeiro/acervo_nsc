@@ -4,6 +4,8 @@ import Dashboard from './pages/Dashboard';
 import ListaMidias from './components/ListaMidias';
 import Normalizacao from './components/Normalizacao';
 import PrivateRoute from './routes/PrivateRoute';
+import CadastrarMidia from './pages/CadastrarMidia';
+
 
 export default function App() {
   return (
@@ -30,6 +32,15 @@ export default function App() {
         element={
           <PrivateRoute>
             <Normalizacao />
+          </PrivateRoute>
+        }
+      />
+
+      <Route
+        path="/cadastro"
+        element={
+          <PrivateRoute>
+            <CadastrarMidia />
           </PrivateRoute>
         }
       />
