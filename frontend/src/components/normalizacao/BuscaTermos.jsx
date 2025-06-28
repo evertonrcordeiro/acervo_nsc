@@ -6,7 +6,7 @@ export default function BuscaTermos({ termo, setTermo, onBuscar }) {
         placeholder="Buscar termos similares"
         value={termo}
         onChange={(e) => setTermo(e.target.value)}
-        className="border p-2 rounded flex-grow"
+        className="p-2 border rounded bg-gray-100 sm:w-[400px]"
         aria-label="Buscar termos similares"
       />
       <button

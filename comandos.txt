@@ -6,6 +6,13 @@ Editar
 git checkout main
 Adicione todos os seus arquivos locais:
 
+
+docker exec -it nome_do_container psql -U seu_usuario -d seu_banco
+CREATE EXTENSION pg_trgm;
+
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
+
 bash
 Copiar
 Editar

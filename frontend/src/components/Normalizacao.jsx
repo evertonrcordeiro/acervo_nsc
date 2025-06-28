@@ -52,14 +52,14 @@ export default function NormalizacaoTermos() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
+    <div className="max-w-2xl mx-auto p-6 bg-white rounded shadow space-y-6">
       <h1 className="text-2xl font-bold text-blue-700">Normalização de Termos</h1>
 
       <div className="flex gap-4">
         <select
           value={entidade}
           onChange={(e) => setEntidade(e.target.value)}
-          className="p-2 border rounded"
+          className="p-2 border rounded bg-gray-100 sm:w-[100px]"
         >
           <option value="locais">Locais</option>
           <option value="programas">Programas</option>

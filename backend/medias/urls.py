@@ -26,4 +26,5 @@ urlpatterns = [
     path('admin/', include(admin_router.urls)),
     path('login/', login_view),
     path('token-auth/', CustomAuthToken.as_view()),
+    # path('max_cod_documento/', max_cod_documento),    
 ]

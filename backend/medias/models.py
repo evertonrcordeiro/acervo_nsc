@@ -67,7 +67,7 @@ class Midia(models.Model):
     num_fita = models.CharField(max_length=50, null=True, blank=True)
     # uuid = models.CharField(max_length=36, unique=True, null=True, blank=True)
     uuid = models.UUIDField(
-        default=uuid.uuid4, 
+        # default=uuid.uuid4, 
         editable=False, 
         unique=True,
         blank=True,

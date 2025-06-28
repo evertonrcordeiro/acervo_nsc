@@ -1,7 +1,7 @@
 from rest_framework import viewsets, status, filters
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
-from rest_framework.decorators import api_view, action
+from rest_framework.decorators import api_view, action, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import PageNumberPagination
@@ -9,12 +9,15 @@ from django.contrib.auth import authenticate
 from django.db.models import Q, BooleanField, Case, When, Value
 from django.utils.dateparse import parse_date
 from django.db import transaction
+from django.db.models import Max
 
 from .models import Midia, Local, Fonte, Programa, Resumo
 from .serializers import (
     MidiaSerializer, LocalSerializer, FonteSerializer,
     ProgramaSerializer, ResumoSerializer
 )
+
+from rest_framework.permissions import AllowAny
 
 
 class MidiaPagination(PageNumberPagination):
@@ -28,6 +31,10 @@ class MidiaViewSet(viewsets.ModelViewSet):
     pagination_class = MidiaPagination
 
     def list(self, request, *args, **kwargs):
+        cod_documento = request.query_params.get('cod_documento')
+        if cod_documento:
+            self.queryset = self.queryset.filter(cod_documento=cod_documento)
+
         search = request.query_params.get('search', '').strip()
         tipo_resultado = request.query_params.get('tipo_resultado', '').lower()
         termos = [t for t in search.split('+') if t]
@@ -125,6 +132,11 @@ class MidiaViewSet(viewsets.ModelViewSet):
             "count_and": queryset_and.count(),
             "count_por_termo": count_por_termo,
         })
+    
+    @action(detail=False, methods=['get'], url_path='max_cod_documento',permission_classes=[AllowAny])
+    def max_cod_documento(self, request):
+        max_cod = Midia.objects.aggregate(Max('cod_documento'))['cod_documento__max'] or 0
+        return Response({'max_cod_documento': max_cod})        
 
 
 class LocalViewSet(viewsets.ReadOnlyModelViewSet):
@@ -132,6 +144,7 @@ class LocalViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = LocalSerializer
     filter_backends = [filters.SearchFilter]
     search_fields = ['nome']
+    permission_classes = [AllowAny]
 
 
 class FonteViewSet(viewsets.ReadOnlyModelViewSet):
@@ -304,3 +317,6 @@ class CustomAuthToken(ObtainAuthToken):
             'user_id': token.user_id,
             'email': token.user.email,
         })
+
+
+
